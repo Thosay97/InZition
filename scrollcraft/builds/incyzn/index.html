@@ -291,16 +291,26 @@
   .icz-question__support p { margin: 0 0 .5em; color: var(--sc-ink-soft); font-size: .98rem; line-height: 1.6; }
   .icz-question__support p:last-child { margin-bottom: 0; color: var(--sc-ink); }
 
-  /* ---- Act 04: the blockage (pan) ---- */
+  /* ---- Act 04: the blockage (pan) ----
+     Every clamp() ceiling here is deliberately raised well past where a
+     "normal" desktop viewport would ever push it. A pan act's travel is
+     scrollWidth - viewport (devices.md §3): if the rail's content stops
+     growing while the viewport keeps growing, the rail eventually becomes
+     narrower than the screen, travel clamps to zero, and the act freezes
+     dead for its entire multi-viewport-height span with the trailing
+     items permanently cropped at the edge — correct at 1440-1920px,
+     silently broken at 2560px+ (a stock 27" monitor). Measured empirically
+     across 1440/1920/2560/3440 after this change; stays comfortably
+     positive at all four. */
   .icz-blockage__rail {
-    display: flex; align-items: center; gap: clamp(1rem, 3vw, 2.4rem);
+    display: flex; align-items: center; gap: clamp(1rem, 3vw, 6rem);
     padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%;
     will-change: transform;
   }
-  .icz-blockage__lead { flex: 0 0 auto; max-width: 20rem; padding-right: 1rem; }
+  .icz-blockage__lead { flex: 0 0 auto; max-width: clamp(18rem, 22vw, 54rem); padding-right: clamp(1rem, 2vw, 3rem); }
   .icz-chip {
     flex: 0 0 auto; border-radius: 3px;
-    padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1.8rem, 4vw, 2.6rem);
+    padding: clamp(1.6rem, 4vw, 4.4rem) clamp(1.8rem, 4vw, 4.8rem);
     opacity: .6; transform: translateY(6px);
     transition: opacity 320ms var(--sc-ease-out), transform 320ms var(--sc-ease-out),
                 border-color 260ms var(--sc-ease-out), box-shadow 260ms var(--sc-ease-out);
@@ -310,10 +320,10 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 14px 30px rgba(0,0,0,.4);
   }
   .icz-chip__num { font: 500 .68rem/1 var(--sc-font-text); letter-spacing: .12em; color: var(--icz-ink-mute); display: block; margin-bottom: .8em; }
-  .icz-chip__word { font-family: var(--sc-font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); color: var(--sc-ink); white-space: nowrap; }
+  .icz-chip__word { font-family: var(--sc-font-display); font-size: clamp(1.4rem, 2.6vw, 3.4rem); color: var(--sc-ink); white-space: nowrap; }
   .icz-chip--accent { border-color: var(--sc-accent); }
   .icz-chip--accent .icz-chip__word { color: var(--sc-accent); }
-  .icz-blockage__note { flex: 0 0 auto; max-width: 18rem; padding-left: .6rem; }
+  .icz-blockage__note { flex: 0 0 auto; max-width: clamp(14rem, 18vw, 44rem); padding-left: clamp(.6rem, 1.5vw, 2rem); }
 
   /* ---- Act 05: the incision (peak) ---- */
   .icz-peak {
@@ -367,11 +377,13 @@
     color: var(--sc-ink); font-family: var(--sc-font-text); max-width: 34ch;
   }
 
-  /* ---- Act 08: the method (pan) ---- */
-  .icz-method__rail { display: flex; align-items: flex-end; gap: clamp(2rem, 5vw, 4.5rem); padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%; }
-  .icz-method__lead { flex: 0 0 auto; max-width: 18rem; padding-bottom: 2.4rem; }
+  /* ---- Act 08: the method (pan) ---- Same rationale as the blockage
+     rail above: ceilings raised so total content keeps growing with the
+     viewport well past 2560px instead of capping out and going dead. */
+  .icz-method__rail { display: flex; align-items: flex-end; gap: clamp(2rem, 5vw, 9rem); padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%; }
+  .icz-method__lead { flex: 0 0 auto; max-width: clamp(16rem, 20vw, 48rem); padding-bottom: 2.4rem; }
   .icz-step {
-    flex: 0 0 auto; width: clamp(11rem, 20vw, 15rem); padding: 1.3rem 1.4rem 2.2rem;
+    flex: 0 0 auto; width: clamp(11rem, 20vw, 30rem); padding: 1.3rem 1.4rem 2.2rem;
     border-radius: 3px; position: relative;
     transition: box-shadow 260ms var(--sc-ease-out), transform 260ms var(--sc-ease-out);
   }
