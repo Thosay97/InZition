@@ -303,14 +303,14 @@
      across 1440/1920/2560/3440 after this change; stays comfortably
      positive at all four. */
   .icz-blockage__rail {
-    display: flex; align-items: center; gap: clamp(1rem, 3vw, 6rem);
+    display: flex; align-items: center; gap: clamp(1rem, 5vw, 12rem);
     padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%;
     will-change: transform;
   }
-  .icz-blockage__lead { flex: 0 0 auto; max-width: clamp(18rem, 22vw, 54rem); padding-right: clamp(1rem, 2vw, 3rem); }
+  .icz-blockage__lead { flex: 0 0 auto; width: clamp(18rem, 35vw, 60rem); padding-right: clamp(1rem, 2vw, 3rem); }
   .icz-chip {
     flex: 0 0 auto; border-radius: 3px;
-    padding: clamp(1.6rem, 4vw, 4.4rem) clamp(1.8rem, 4vw, 4.8rem);
+    padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1.8rem, 4vw, 2.6rem);
     opacity: .6; transform: translateY(6px);
     transition: opacity 320ms var(--sc-ease-out), transform 320ms var(--sc-ease-out),
                 border-color 260ms var(--sc-ease-out), box-shadow 260ms var(--sc-ease-out);
@@ -320,10 +320,10 @@
     box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 14px 30px rgba(0,0,0,.4);
   }
   .icz-chip__num { font: 500 .68rem/1 var(--sc-font-text); letter-spacing: .12em; color: var(--icz-ink-mute); display: block; margin-bottom: .8em; }
-  .icz-chip__word { font-family: var(--sc-font-display); font-size: clamp(1.4rem, 2.6vw, 3.4rem); color: var(--sc-ink); white-space: nowrap; }
+  .icz-chip__word { font-family: var(--sc-font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); color: var(--sc-ink); white-space: nowrap; }
   .icz-chip--accent { border-color: var(--sc-accent); }
   .icz-chip--accent .icz-chip__word { color: var(--sc-accent); }
-  .icz-blockage__note { flex: 0 0 auto; max-width: clamp(14rem, 18vw, 44rem); padding-left: clamp(.6rem, 1.5vw, 2rem); }
+  .icz-blockage__note { flex: 0 0 auto; width: clamp(14rem, 26vw, 50rem); padding-left: clamp(.6rem, 1.5vw, 2rem); }
 
   /* ---- Act 05: the incision (peak) ---- */
   .icz-peak {
@@ -380,10 +380,10 @@
   /* ---- Act 08: the method (pan) ---- Same rationale as the blockage
      rail above: ceilings raised so total content keeps growing with the
      viewport well past 2560px instead of capping out and going dead. */
-  .icz-method__rail { display: flex; align-items: flex-end; gap: clamp(2rem, 5vw, 9rem); padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%; }
-  .icz-method__lead { flex: 0 0 auto; max-width: clamp(16rem, 20vw, 48rem); padding-bottom: 2.4rem; }
+  .icz-method__rail { display: flex; align-items: flex-end; gap: clamp(2rem, 8vw, 18rem); padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%; }
+  .icz-method__lead { flex: 0 0 auto; width: clamp(16rem, 30vw, 56rem); padding-bottom: 2.4rem; }
   .icz-step {
-    flex: 0 0 auto; width: clamp(11rem, 20vw, 30rem); padding: 1.3rem 1.4rem 2.2rem;
+    flex: 0 0 auto; width: clamp(11rem, 20vw, 15rem); padding: 1.3rem 1.4rem 2.2rem;
     border-radius: 3px; position: relative;
     transition: box-shadow 260ms var(--sc-ease-out), transform 260ms var(--sc-ease-out);
   }
@@ -1042,9 +1042,15 @@
         // under the copy, whenever it is not the thing being looked at.
         var services = p(5), quotes = p(8), dontDo = p(6);
         var peakTail = incisionLocal > 0.58; // once "One precise intervention." is holding
+        // The blockage act's chips are solid glass cards, not plain text: a
+        // network line crossing a card's face reads as a rendering glitch,
+        // not atmosphere, in a way it does not over bare copy. Recede here
+        // too rather than leaning on the "simplifying network" visual for
+        // this act — Acts 03 and 05 already carry that beat.
         var recedeWin = (doc > services.top && doc < services.bottom) ||
                          (doc > quotes.top && doc < quotes.bottom) ||
                          (doc > dontDo.top && doc < dontDo.bottom) ||
+                         (doc > blockage.top && doc < blockage.bottom) ||
                          peakTail;
         var rail = document.querySelector('.icz-rail');
         rail.style.opacity = recedeWin ? '0.16' : '1';
