@@ -34,7 +34,12 @@
 
   /* ============================================================ RESET-ish */
   * { box-sizing: border-box; }
-  html { background: var(--sc-canvas); }
+  /* The engine defaults html to scroll-behavior: smooth. This page's own
+     wheel-driven lerp (see script) supplies all the smoothing now, for
+     every trigger, so the browser's native smooth-scroll must stay out of
+     the way entirely rather than run a second, competing animation on top
+     of it — keyboard Page Down/Home/End included. */
+  html { background: var(--sc-canvas); scroll-behavior: auto; }
   body { background: var(--sc-canvas); overflow-x: clip; }
 
   /* ============================================================ LIQUID GLASS (monochrome)
@@ -771,7 +776,17 @@
             current += (target - current) * ease;
             if (Math.abs(target - current) < 0.05) current = target;
             var next = Math.round(current);
-            if (next !== lastSet || next !== Math.round(scrollY)) window.scrollTo(0, next);
+            // The engine's own CSS sets `scroll-behavior: smooth` on <html>
+            // for the rare native jump (a skip link, browser back/forward).
+            // The legacy two-argument scrollTo(x, y) does NOT opt out of
+            // that: every call here would kick off the browser's own
+            // ~300ms native smooth-scroll animation, restarted from
+            // scratch on the very next frame, 16ms later, before it ever
+            // travels anywhere — this lerp supplies all the smoothing
+            // already, so every write here must be instant.
+            if (next !== lastSet || next !== Math.round(scrollY)) {
+              window.scrollTo({ top: next, left: 0, behavior: 'instant' });
+            }
             lastSet = next;
           }
         };
