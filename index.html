@@ -37,6 +37,102 @@
   html { background: var(--sc-canvas); }
   body { background: var(--sc-canvas); overflow-x: clip; }
 
+  /* ============================================================ LIQUID GLASS (monochrome)
+     One material, used with restraint on a few surfaces: the nav bar, the
+     ghost CTA, the diagnostic chips, the method steps. No colour, no
+     rainbow refraction — a cold instrument-glass, not a consumer-app one.
+     Defined early so later component rules (e.g. .icz-chip--accent's
+     border-color) win the cascade on shared properties by source order. */
+  .icz-glass {
+    background: linear-gradient(155deg, rgba(255,255,255,.07), rgba(255,255,255,.015) 55%, rgba(255,255,255,.04));
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border: 1px solid rgba(255,255,255,.1);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.03), 0 10px 34px rgba(0,0,0,.4);
+  }
+  @supports not (backdrop-filter: blur(1px)) {
+    .icz-glass { background: rgba(16,16,16,.86); }
+  }
+  /* backdrop-filter is the single most GPU-expensive thing on this page;
+     halve it on phones rather than pay full desktop cost for the same
+     visual weight on a smaller, often software-composited surface. */
+  @media (max-width: 720px) {
+    .icz-glass {
+      backdrop-filter: blur(10px) saturate(130%);
+      -webkit-backdrop-filter: blur(10px) saturate(130%);
+    }
+  }
+
+  /* ============================================================ GRAIN + FILM TEXTURE
+     The engine's own .sc-grain is a very light static noise layer. Raise
+     the base amount and add a stepped flicker so it reads as motion-
+     picture grain living in the room, not a printed texture — off under
+     reduced motion since it is unconditional autoplay motion, not
+     something scroll drives. */
+  .sc-grain { opacity: .1; }
+  .sc-grain::before { animation: icz-grain-flicker 1.1s steps(6) infinite; }
+  @keyframes icz-grain-flicker {
+    0%, 100% { transform: translate(0, 0); }
+    16%  { transform: translate(-1.5%, 1%); }
+    33%  { transform: translate(1%, -1.5%); }
+    50%  { transform: translate(-1%, -1%); }
+    66%  { transform: translate(1.5%, .5%); }
+    83%  { transform: translate(-.5%, 1.5%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .sc-grain::before { animation: none; }
+  }
+
+  /* ============================================================ CURSOR SYSTEM
+     A small InCyZn mark that leads the pointer precisely, and a soft white
+     volumetric glow that trails it a little heavier. Fine pointer + hover
+     only (class added by JS after a matchMedia check), fully native
+     everywhere else — touch, keyboard, reduced motion. */
+  html.icz-has-cursor, html.icz-has-cursor a, html.icz-has-cursor button {
+    cursor: none;
+  }
+  .icz-cursor-glow, .icz-cursor-mark {
+    position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none;
+    will-change: transform; opacity: 0; transition: opacity 320ms var(--sc-ease-out);
+  }
+  /* .icz-cursor-live is added on the first real mousemove, not on load: no
+     phantom glow parked in the viewport centre before the pointer has
+     actually moved (or ever, in an automated/headless pass). */
+  html.icz-has-cursor.icz-cursor-live .icz-cursor-glow,
+  html.icz-has-cursor.icz-cursor-live .icz-cursor-mark { opacity: 1; }
+  .icz-cursor-glow {
+    width: 480px; height: 480px; margin: -240px 0 0 -240px; border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,255,255,.16) 0%, rgba(255,255,255,.06) 38%, rgba(255,255,255,0) 68%);
+    mix-blend-mode: screen; filter: blur(2px);
+  }
+  .icz-cursor-mark {
+    width: 22px; height: 22px; margin: -11px 0 0 -11px;
+    transition: opacity 320ms var(--sc-ease-out), transform 200ms var(--sc-ease-out);
+  }
+  .icz-cursor-mark img {
+    width: 100%; height: 100%; display: block; object-fit: contain;
+    filter: drop-shadow(0 0 6px rgba(255,255,255,.35));
+  }
+  html.icz-cursor-active .icz-cursor-mark { transform: scale(1.7) rotate(14deg); }
+  html.icz-cursor-active .icz-cursor-glow {
+    background: radial-gradient(circle, rgba(255,255,255,.26) 0%, rgba(255,255,255,.09) 40%, rgba(255,255,255,0) 70%);
+  }
+  @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+    .icz-cursor-glow, .icz-cursor-mark { display: none; }
+  }
+
+  /* ============================================================ INCISION FLASH
+     A soft monochrome luminance lift, not a strobe: opacity is fully
+     scroll-scrubbed off the cut's own wipe progress (see script), peaking
+     the instant the cut completes and settling before the peak label
+     holds. Blend mode keeps it from ever reading as a flat white card. */
+  .icz-flash {
+    position: fixed; inset: 0; z-index: 15; pointer-events: none;
+    background: radial-gradient(circle at 50% 50%, rgba(255,255,255,.9), rgba(255,255,255,0) 72%);
+    mix-blend-mode: overlay; opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) { .icz-flash { display: none; } }
+
   /* ============================================================ NAV */
   .icz-nav {
     position: fixed; inset: 0 0 auto 0; z-index: 40;
@@ -45,6 +141,10 @@
     opacity: 0; transform: translateY(-6px);
     transition: opacity 480ms var(--sc-ease-out), transform 480ms var(--sc-ease-out);
     pointer-events: none;
+    background: linear-gradient(180deg, rgba(8,8,8,.6), rgba(8,8,8,.26));
+    backdrop-filter: blur(18px) saturate(130%);
+    -webkit-backdrop-filter: blur(18px) saturate(130%);
+    border-bottom: 1px solid rgba(255,255,255,.06);
   }
   .icz-nav.icz-in { opacity: 1; transform: translateY(0); pointer-events: auto; }
   .icz-nav__mark { display: flex; align-items: center; gap: .6em; }
@@ -77,6 +177,9 @@
   @media (max-width: 640px) {
     .icz-nav__links a:not(.icz-nav__cta) { display: none; }
   }
+  @media (max-width: 720px) {
+    .icz-nav { backdrop-filter: blur(10px) saturate(130%); -webkit-backdrop-filter: blur(10px) saturate(130%); }
+  }
 
   /* ============================================================ SIGNATURE RAIL
      Persistent fixed layer. Present from the first pixel to the last. Its
@@ -99,8 +202,19 @@
     vector-effect: non-scaling-stroke;
   }
   .icz-rail__edge.is-lit { stroke: var(--sc-accent); }
-  .icz-rail__node { fill: var(--sc-ink-soft); }
+  .icz-rail__node {
+    fill: var(--sc-ink-soft);
+    transition: r 220ms var(--sc-ease-out), fill 220ms var(--sc-ease-out);
+  }
   .icz-rail__node.is-lit { fill: var(--sc-accent-2); }
+  /* Nodes react to a nearby pointer — fine-pointer desktop only, driven
+     from the cursor tick in script, off entirely under reduced motion
+     (the same gate that keeps the cursor system itself native there). */
+  .icz-rail__node.is-hover {
+    r: 8;
+    fill: var(--icz-accent-2);
+    filter: drop-shadow(0 0 8px rgba(216, 218, 220, .75));
+  }
   .icz-rail__cut { stroke: var(--icz-accent-2, var(--sc-accent)); stroke-width: 2; }
 
   /* ============================================================ TYPE UTILITIES */
@@ -180,13 +294,16 @@
   }
   .icz-blockage__lead { flex: 0 0 auto; max-width: 20rem; padding-right: 1rem; }
   .icz-chip {
-    flex: 0 0 auto; border: 1px solid var(--icz-border); border-radius: 2px;
+    flex: 0 0 auto; border-radius: 3px;
     padding: clamp(1.6rem, 4vw, 2.4rem) clamp(1.8rem, 4vw, 2.6rem);
-    background: linear-gradient(180deg, rgba(255,255,255,.015), transparent);
     opacity: .6; transform: translateY(6px);
-    transition: opacity 320ms var(--sc-ease-out), transform 320ms var(--sc-ease-out), border-color 320ms var(--sc-ease-out);
+    transition: opacity 320ms var(--sc-ease-out), transform 320ms var(--sc-ease-out),
+                border-color 260ms var(--sc-ease-out), box-shadow 260ms var(--sc-ease-out);
   }
   .icz-chip.sc-in { opacity: 1; transform: translateY(0); }
+  .icz-chip:hover, .icz-chip:focus-within {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 14px 30px rgba(0,0,0,.4);
+  }
   .icz-chip__num { font: 500 .68rem/1 var(--sc-font-text); letter-spacing: .12em; color: var(--icz-ink-mute); display: block; margin-bottom: .8em; }
   .icz-chip__word { font-family: var(--sc-font-display); font-size: clamp(1.4rem, 2.6vw, 2rem); color: var(--sc-ink); white-space: nowrap; }
   .icz-chip--accent { border-color: var(--sc-accent); }
@@ -248,10 +365,23 @@
   /* ---- Act 08: the method (pan) ---- */
   .icz-method__rail { display: flex; align-items: flex-end; gap: clamp(2rem, 5vw, 4.5rem); padding: 0 clamp(1.2rem, 6vw, 6rem); height: 100%; }
   .icz-method__lead { flex: 0 0 auto; max-width: 18rem; padding-bottom: 2.4rem; }
-  .icz-step { flex: 0 0 auto; width: clamp(11rem, 20vw, 15rem); padding-bottom: 2.4rem; position: relative; }
+  .icz-step {
+    flex: 0 0 auto; width: clamp(11rem, 20vw, 15rem); padding: 1.3rem 1.4rem 2.2rem;
+    border-radius: 3px; position: relative;
+    transition: box-shadow 260ms var(--sc-ease-out), transform 260ms var(--sc-ease-out);
+  }
+  .icz-step:hover, .icz-step:focus-within {
+    transform: translateY(-3px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 16px 32px rgba(0,0,0,.4);
+  }
   .icz-step::before {
-    content: ""; position: absolute; left: 0; bottom: 0; width: 6px; height: 6px; border-radius: 50%;
+    content: ""; position: absolute; left: 1.4rem; bottom: 1.6rem; width: 6px; height: 6px; border-radius: 50%;
     background: var(--sc-accent); transform: translateY(50%);
+    transition: transform 260ms var(--sc-ease-out), box-shadow 260ms var(--sc-ease-out);
+  }
+  .icz-step:hover::before, .icz-step:focus-within::before {
+    transform: translateY(50%) scale(1.6);
+    box-shadow: 0 0 10px rgba(191,195,198,.6);
   }
   .icz-step__num { font: 500 .7rem/1 var(--sc-font-text); letter-spacing: .1em; color: var(--icz-ink-mute); display: block; margin-bottom: .9em; }
   .icz-step__name { font-family: var(--sc-font-display); font-size: clamp(1.15rem, 1.8vw, 1.4rem); color: var(--sc-ink); display: block; margin-bottom: .5em; }
@@ -281,12 +411,21 @@
   .icz-cta {
     font: 500 .82rem/1 var(--sc-font-text); letter-spacing: .04em;
     padding: .95em 1.7em; border-radius: 2px; text-decoration: none;
-    transition: transform 180ms var(--sc-ease-out), background 180ms var(--sc-ease-out), border-color 180ms var(--sc-ease-out);
+    position: relative; isolation: isolate;
+    transition: transform 180ms var(--sc-ease-out), background 180ms var(--sc-ease-out), border-color 180ms var(--sc-ease-out), color 320ms var(--sc-ease-out);
   }
   .icz-cta--primary { background: var(--sc-accent); color: var(--sc-accent-ink); }
   .icz-cta--primary:hover, .icz-cta--primary:focus-visible { background: var(--icz-accent-2); }
   .icz-cta--ghost { color: var(--sc-ink); border: 1px solid var(--icz-border); }
-  .icz-cta--ghost:hover, .icz-cta--ghost:focus-visible { border-color: var(--sc-accent); }
+  /* Morph/invert: a solid plate wipes in from the left on hover, and the
+     label inverts to sit on it — a deliberate colour swap, not a fade. */
+  .icz-cta--ghost::before {
+    content: ""; position: absolute; inset: 0; z-index: -1; background: var(--sc-ink);
+    transform: scaleX(0); transform-origin: left center;
+    transition: transform 420ms var(--sc-ease-out);
+  }
+  .icz-cta--ghost:hover, .icz-cta--ghost:focus-visible { border-color: transparent; color: var(--sc-canvas); }
+  .icz-cta--ghost:hover::before, .icz-cta--ghost:focus-visible::before { transform: scaleX(1); }
   .icz-cta:active { transform: scale(.97); }
   .icz-close__foot { margin-top: clamp(2.4rem, 6vh, 3.6rem); display: flex; flex-direction: column; align-items: center; gap: .5rem; }
   .icz-close__foot img { height: 1.4rem; opacity: .85; }
@@ -322,6 +461,11 @@
     <path id="icz-rail-cut" class="icz-rail__cut" d="M180,60 L820,540" pathLength="1000" opacity="0" />
   </svg>
 </div>
+
+<div class="icz-flash" aria-hidden="true"></div>
+
+<div class="icz-cursor-glow" aria-hidden="true"></div>
+<div class="icz-cursor-mark" aria-hidden="true"><img src="assets/incyzn-mark.png" alt="" width="60" height="30"></div>
 
 <header class="icz-nav" id="icz-nav">
   <a class="icz-nav__mark" href="#top" aria-label="InCyZn, back to top">
@@ -402,12 +546,12 @@
           <p class="icz-eyebrow">Find the constraint</p>
           <p class="icz-body">Sometimes the answer is another person. Sometimes it isn't.</p>
         </div>
-        <div class="icz-chip"><span class="icz-chip__num">01</span><span class="icz-chip__word icz-serif">Hire.</span></div>
-        <div class="icz-chip"><span class="icz-chip__num">02</span><span class="icz-chip__word icz-serif">Restructure.</span></div>
-        <div class="icz-chip"><span class="icz-chip__num">03</span><span class="icz-chip__word icz-serif">Reassign.</span></div>
-        <div class="icz-chip"><span class="icz-chip__num">04</span><span class="icz-chip__word icz-serif">Redefine.</span></div>
-        <div class="icz-chip"><span class="icz-chip__num">05</span><span class="icz-chip__word icz-serif">Remove.</span></div>
-        <div class="icz-chip icz-chip--accent"><span class="icz-chip__num">06</span><span class="icz-chip__word icz-serif">Intervene.</span></div>
+        <div class="icz-chip icz-glass" data-sc-tilt="6"><span class="icz-chip__num">01</span><span class="icz-chip__word icz-serif">Hire.</span></div>
+        <div class="icz-chip icz-glass" data-sc-tilt="6"><span class="icz-chip__num">02</span><span class="icz-chip__word icz-serif">Restructure.</span></div>
+        <div class="icz-chip icz-glass" data-sc-tilt="6"><span class="icz-chip__num">03</span><span class="icz-chip__word icz-serif">Reassign.</span></div>
+        <div class="icz-chip icz-glass" data-sc-tilt="6"><span class="icz-chip__num">04</span><span class="icz-chip__word icz-serif">Redefine.</span></div>
+        <div class="icz-chip icz-glass" data-sc-tilt="6"><span class="icz-chip__num">05</span><span class="icz-chip__word icz-serif">Remove.</span></div>
+        <div class="icz-chip icz-glass icz-chip--accent" data-sc-tilt="6"><span class="icz-chip__num">06</span><span class="icz-chip__word icz-serif">Intervene.</span></div>
         <div class="icz-blockage__note">
           <p class="icz-body">Each one is a deliberate diagnostic possibility, not a default.</p>
         </div>
@@ -498,12 +642,12 @@
           <p class="icz-eyebrow">The method</p>
           <p class="icz-body">Not a numbered process. The same line from the top of the page, now moving freely.</p>
         </div>
-        <article class="icz-step"><span class="icz-step__num">01</span><span class="icz-step__name icz-serif">Observe</span><p class="icz-step__desc">Understand the business, product, project and people involved.</p></article>
-        <article class="icz-step"><span class="icz-step__num">02</span><span class="icz-step__name icz-serif">Diagnose</span><p class="icz-step__desc">Identify where execution is blocked.</p></article>
-        <article class="icz-step"><span class="icz-step__num">03</span><span class="icz-step__name icz-serif">Isolate</span><p class="icz-step__desc">Separate the actual capability gap from symptoms.</p></article>
-        <article class="icz-step"><span class="icz-step__num">04</span><span class="icz-step__name icz-serif">Intervene</span><p class="icz-step__desc">Determine the smallest effective intervention.</p></article>
-        <article class="icz-step"><span class="icz-step__num">05</span><span class="icz-step__name icz-serif">Source</span><p class="icz-step__desc">If a person is required, identify the highest-signal candidates.</p></article>
-        <article class="icz-step"><span class="icz-step__num">06</span><span class="icz-step__name icz-serif">Restore</span><p class="icz-step__desc">Return the system to momentum.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">01</span><span class="icz-step__name icz-serif">Observe</span><p class="icz-step__desc">Understand the business, product, project and people involved.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">02</span><span class="icz-step__name icz-serif">Diagnose</span><p class="icz-step__desc">Identify where execution is blocked.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">03</span><span class="icz-step__name icz-serif">Isolate</span><p class="icz-step__desc">Separate the actual capability gap from symptoms.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">04</span><span class="icz-step__name icz-serif">Intervene</span><p class="icz-step__desc">Determine the smallest effective intervention.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">05</span><span class="icz-step__name icz-serif">Source</span><p class="icz-step__desc">If a person is required, identify the highest-signal candidates.</p></article>
+        <article class="icz-step icz-glass" data-sc-tilt="5"><span class="icz-step__num">06</span><span class="icz-step__name icz-serif">Restore</span><p class="icz-step__desc">Return the system to momentum.</p></article>
       </div>
     </div>
   </section>
@@ -543,7 +687,7 @@
         <h2 class="icz-close__h1 icz-serif" data-sc-cue="0.1">Let's find out why.</h2>
         <div class="icz-cta-row" data-sc-cue="0.14">
           <a class="icz-cta icz-cta--primary" href="mailto:hello@incyzn.com?subject=Tell%20us%20what%27s%20stalled" data-sc-magnet="0.24" data-sc-rise="0">Tell us what's stalled</a>
-          <a class="icz-cta icz-cta--ghost" href="mailto:hello@incyzn.com?subject=Start%20a%20conversation">Start a conversation</a>
+          <a class="icz-cta icz-cta--ghost icz-glass" href="mailto:hello@incyzn.com?subject=Start%20a%20conversation">Start a conversation</a>
         </div>
         <footer class="icz-close__foot" data-sc-cue="0.18">
           <img src="assets/incyzn-mark.png" alt="" width="60" height="30">
@@ -579,6 +723,109 @@
     var edgesG = document.getElementById('icz-rail-edges');
     var nodesG = document.getElementById('icz-rail-nodes');
     var cutPath = document.getElementById('icz-rail-cut');
+    var railSvg = document.querySelector('.icz-rail svg');
+    var flashEl = document.querySelector('.icz-flash');
+
+    // ================================================================
+    // Smooth, cinematic scroll. Wheel-driven only: touch already scrolls
+    // natively and well, and keyboard/screen-reader scroll (Page Down,
+    // Home, arrows, a focus jump) stays immediate and predictable rather
+    // than mysteriously lerped. Off entirely under reduced motion. Real
+    // window scroll is still what moves (via scrollTo each frame), not a
+    // transformed wrapper, so every act's own getBoundingClientRect/scrollY
+    // math keeps working unchanged.
+    // ================================================================
+    var smooth = null;
+    if (!reduce) {
+      smooth = (function () {
+        var current = scrollY, target = scrollY, lastSet = Math.round(scrollY);
+        var ease = 0.09;
+        function maxScroll() { return Math.max(0, docEl.scrollHeight - innerHeight); }
+        function clampScroll(v) { return Math.max(0, Math.min(maxScroll(), v)); }
+        function onWheel(e) {
+          e.preventDefault();
+          var amt = e.deltaY * (e.deltaMode === 1 ? 18 : e.deltaMode === 2 ? innerHeight : 1);
+          target = clampScroll(target + amt);
+        }
+        addEventListener('wheel', onWheel, { passive: false });
+
+        // in-page links (nav, "back to top") animate through the same lerp
+        // instead of an instant jump
+        Array.prototype.forEach.call(document.querySelectorAll('a[href^="#"]'), function (a) {
+          a.addEventListener('click', function (e) {
+            var href = a.getAttribute('href');
+            if (!href || href === '#') return;
+            var id = href.slice(1);
+            var el = id === 'top' ? document.body : document.getElementById(id);
+            if (!el) return;
+            e.preventDefault();
+            target = clampScroll(el.getBoundingClientRect().top + scrollY);
+          });
+        });
+
+        return {
+          tick: function () {
+            // something else moved real scroll this frame (keyboard, the
+            // harness's scrollTo, a focus jump) — resync rather than fight it
+            if (Math.abs(scrollY - lastSet) > 2) { target = current = scrollY; }
+            current += (target - current) * ease;
+            if (Math.abs(target - current) < 0.05) current = target;
+            var next = Math.round(current);
+            if (next !== lastSet || next !== Math.round(scrollY)) window.scrollTo(0, next);
+            lastSet = next;
+          }
+        };
+      })();
+    }
+
+    // ================================================================
+    // Cursor: a small InCyZn mark that leads the pointer, and a soft white
+    // volumetric glow trailing a little heavier behind it. Fine pointer +
+    // hover only; native cursor everywhere else (touch, keyboard, reduced
+    // motion). Both layers are pointer-events:none and never the only way
+    // to know where the pointer is — they sit on top of a perfectly normal
+    // (if hidden) system cursor, and focus-visible is untouched.
+    // ================================================================
+    var cursor = null;
+    if (!reduce && matchMedia('(hover: hover) and (pointer: fine)').matches) {
+      cursor = (function () {
+        var glowEl = document.querySelector('.icz-cursor-glow');
+        var markEl = document.querySelector('.icz-cursor-mark');
+        docEl.classList.add('icz-has-cursor');
+        var px = innerWidth / 2, py = innerHeight / 2;
+        var mx = px, my = py, gx = px, gy = py;
+        addEventListener('mousemove', function (e) {
+          px = e.clientX; py = e.clientY;
+          docEl.classList.add('icz-cursor-live'); // first real movement only reveals the cursor layers
+        }, { passive: true });
+        addEventListener('mousedown', function () { docEl.classList.add('icz-cursor-active'); });
+        addEventListener('mouseup', function () { docEl.classList.remove('icz-cursor-active'); });
+        Array.prototype.forEach.call(document.querySelectorAll('a, button, [data-sc-tilt]'), function (el) {
+          el.addEventListener('mouseenter', function () { docEl.classList.add('icz-cursor-active'); });
+          el.addEventListener('mouseleave', function () { docEl.classList.remove('icz-cursor-active'); });
+        });
+        return {
+          tick: function () {
+            mx += (px - mx) * 0.24; my += (py - my) * 0.24;   // mark: tight, precise follow
+            gx += (px - gx) * 0.085; gy += (py - gy) * 0.085; // glow: heavier, volumetric lag
+            markEl.style.transform = 'translate3d(' + mx + 'px,' + my + 'px,0)';
+            glowEl.style.transform = 'translate3d(' + gx + 'px,' + gy + 'px,0)';
+          },
+          point: function () { return { x: px, y: py }; }
+        };
+      })();
+    }
+
+    // Screen-space pointer -> the rail SVG's own viewBox space, accounting
+    // for the fixed layer's letterboxed scaling (preserveAspectRatio="meet").
+    function svgPoint(clientX, clientY) {
+      var pt = railSvg.createSVGPoint();
+      pt.x = clientX; pt.y = clientY;
+      var ctm = railSvg.getScreenCTM();
+      if (!ctm) return { x: 500, y: 300 };
+      var loc = pt.matrixTransform(ctm.inverse());
+      return { x: loc.x, y: loc.y };
+    }
 
     // ---- build the tangled network once ---------------------------------
     var NS = 'http://www.w3.org/2000/svg';
@@ -639,7 +886,23 @@
     var lerp = function (a, b, t) { return a + (b - a) * Math.max(0, Math.min(1, t)); };
     var jitterT = 0;
 
+    var pointerSvg = null; // last known pointer position in the rail's own SVG space
+
     function frame() {
+      if (smooth) smooth.tick();
+      if (cursor) {
+        cursor.tick();
+        var pp = cursor.point();
+        pointerSvg = svgPoint(pp.x, pp.y);
+        for (var hn = 0; hn < nodeEls.length; hn++) {
+          var nd = nodes[hn];
+          var dist = Math.hypot(nd[0] - pointerSvg.x, nd[1] - pointerSvg.y);
+          nodeEls[hn].classList.toggle('is-hover', dist < 60);
+        }
+      } else {
+        pointerSvg = null;
+      }
+
       var doc = docEl.scrollHeight > innerHeight
         ? scrollY / (docEl.scrollHeight - innerHeight)
         : 0;
@@ -690,6 +953,16 @@
         cutPath.style.strokeDasharray = '1000';
         cutPath.style.strokeDashoffset = String(1000 * (1 - wipe));
 
+        // The incision flash: a soft luminance lift, not a strobe. Fully
+        // scroll-scrubbed off the cut's own wipe progress — it peaks the
+        // instant the cut completes (wipe reaching 1) and is gone again
+        // before the "One precise intervention." label starts holding, so
+        // it never fights the text for attention. Reversible by scrolling
+        // back up. Disabled outright under reduced motion via CSS.
+        var flashP = clamp01(1 - Math.abs(wipe - 1) / 0.18);
+        var flashActive = incisionLocal > 0.05 && incisionLocal < 0.6;
+        flashEl.style.opacity = String(flashActive ? flashP * 0.34 : 0);
+
         var resolved = clamp01(remap(incisionLocal, 0.55, 0.8));
         netG.style.opacity = String(lerp(toNet, 0, resolved));
         lineG.style.opacity = String(lerp(1 - toNet * 0.85, 1, resolved));
@@ -700,14 +973,24 @@
           : 'M60,300 L940,300');
 
         // jitter: only through Acts 01-02 (before the system act begins),
-        // and only when motion is not reduced
+        // and only when motion is not reduced. The line also leans gently
+        // toward the pointer when it is nearby and the line is plain (not
+        // the network) — fine-pointer desktop only, via the same cursor
+        // system, so the signature rail visibly answers the reader's hand
+        // rather than only their scroll.
         if (!reduce) {
           jitterT += 0.045;
           var jitterWindow = clamp01(remap(doc, 0, system.top));
           var amp = lerp(0, 14, Math.min(1, jitterWindow * 1.4)) * (1 - toNet);
-          var y1 = 300 + Math.sin(jitterT) * amp * 0.4;
-          var y2 = 300 + Math.sin(jitterT * 1.7 + 1) * amp;
-          var y3 = 300 + Math.sin(jitterT * 1.3 + 2) * amp * 0.6;
+          var bendY = 0;
+          if (pointerSvg && toNet < 0.05) {
+            var pdx = pointerSvg.x - 500, pdy = pointerSvg.y - 300;
+            var pdist = Math.hypot(pdx, pdy);
+            var pull = Math.max(0, 1 - pdist / 480) * 30;
+            bendY = (pdy / (pdist || 1)) * pull;
+          }
+          var y1 = 300 + Math.sin(jitterT) * amp * 0.4 + bendY * 0.3;
+          var y2 = 300 + Math.sin(jitterT * 1.7 + 1) * amp + bendY;
           if (toNet < 0.05) {
             linePath.setAttribute('d',
               'M60,300 Q300,' + y1 + ' 500,' + y2 + ' T940,300');
